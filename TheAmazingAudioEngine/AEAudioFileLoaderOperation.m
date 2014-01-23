@@ -226,6 +226,7 @@ static const int kMaxAudioFileReadSize = 16384;
         
         if ( numberOfPackets == 0 ) {
             // Termination condition
+            fileLengthInFrames = readFrames;
             break;
         }
         
