@@ -67,7 +67,7 @@ static element_t findNextTriggerValueInRange(AELimiter *THIS, AudioBufferList *d
 - (id)initWithNumberOfChannels:(NSInteger)numberOfChannels sampleRate:(Float32)sampleRate {
     if ( !(self = [super init]) ) return nil;
     
-    TPCircularBufferInit(&_buffer, kBufferSize*numberOfChannels);
+    TPCircularBufferInit(&_buffer, (int32_t)(kBufferSize*numberOfChannels));
     self.hold = 22050;
     self.decay = 44100;
     self.attack = 2048;
@@ -78,7 +78,7 @@ static element_t findNextTriggerValueInRange(AELimiter *THIS, AudioBufferList *d
     
     _audioDescription.mFormatID          = kAudioFormatLinearPCM;
     _audioDescription.mFormatFlags       = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked | kAudioFormatFlagIsNonInterleaved;
-    _audioDescription.mChannelsPerFrame  = numberOfChannels;
+    _audioDescription.mChannelsPerFrame  = (UInt32)numberOfChannels;
     _audioDescription.mBytesPerPacket    = sizeof(float);
     _audioDescription.mFramesPerPacket   = 1;
     _audioDescription.mBytesPerFrame     = sizeof(float);
@@ -326,7 +326,7 @@ static element_t findNextTriggerValueInRange(AELimiter *THIS, AudioBufferList *d
     while ( framesSeen < range.location+range.length && buffer ) {
         int bufferOffset = buffer == dequeuedBufferList ? dequeuedBufferListOffset : 0;
         if ( framesSeen < range.location ) {
-            int skip = min((buffer->mBuffers[0].mDataByteSize/sizeof(float))-bufferOffset, range.location-framesSeen);
+            int skip = min((buffer->mBuffers[0].mDataByteSize/sizeof(float))-bufferOffset, (int)range.location-framesSeen);
             framesSeen += skip;
             bufferOffset += skip;
         }
@@ -340,7 +340,7 @@ static element_t findNextTriggerValueInRange(AELimiter *THIS, AudioBufferList *d
                 float *v=start;
                 for ( ; v<end && fabsf(*v) < THIS->_level; v++ );
                 if ( v != end ) {
-                    return (element_t){ .value = fabsf(*v), .index = framesSeen + (v-start) };
+                    return (element_t){ .value = fabsf(*v), .index = (int)framesSeen + (int)(v-start) };
                 }
             }
             framesSeen += (buffer->mBuffers[0].mDataByteSize / sizeof(float)) - bufferOffset;
@@ -362,7 +362,7 @@ static element_t findMaxValueInRange(AELimiter *THIS, AudioBufferList *dequeuedB
     while ( framesSeen < range.location+range.length && buffer ) {
         int bufferOffset = buffer == dequeuedBufferList ? dequeuedBufferListOffset : 0;
         if ( framesSeen < range.location ) {
-            int skip = min((buffer->mBuffers[0].mDataByteSize/sizeof(float))-bufferOffset, range.location-framesSeen);
+            int skip = min((buffer->mBuffers[0].mDataByteSize/sizeof(float))-bufferOffset, (int)range.location-framesSeen);
             framesSeen += skip;
             bufferOffset += skip;
         }
@@ -372,9 +372,9 @@ static element_t findMaxValueInRange(AELimiter *THIS, AudioBufferList *dequeuedB
             for ( int i=0; i<buffer->mNumberBuffers; i++ ) {
                 float *position = (float*)buffer->mBuffers[i].mData + bufferOffset;
                 int length = (buffer->mBuffers[i].mDataByteSize / sizeof(float)) - bufferOffset;
-                length = MIN(length, ((range.location+range.length) - framesSeen));
+                length = MIN(length, (int)((range.location+range.length) - framesSeen));
                 
-                vDSP_Length buffer_max_index;
+                vDSP_Length buffer_max_index = 0;
                 float buffer_max = max;
                 for ( int i=0; i<buffer->mNumberBuffers; i++ ) {
                     vDSP_maxmgvi(position, 1, &buffer_max, &buffer_max_index, length);
@@ -393,7 +393,7 @@ static element_t findMaxValueInRange(AELimiter *THIS, AudioBufferList *dequeuedB
               TPCircularBufferNextBufferListAfter(&THIS->_buffer, buffer, NULL);
     }
     
-    return (element_t) { .value = max, .index = index};
+    return (element_t) { .value = max, .index = (int)index};
 }
 
 @end

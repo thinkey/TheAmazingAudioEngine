@@ -300,7 +300,7 @@ static OSStatus filterCallback(id                        filter,
             
         case kStateClosing: {
             // Apply a ramp to the first part of the buffer
-            UInt32 decayFrames = AEConvertSecondsToFrames(audioController, THIS->_decay);
+            UInt32 decayFrames = (UInt32) AEConvertSecondsToFrames(audioController, THIS->_decay);
             int rampDuration = min(THIS->_multiplier * decayFrames, frames);
             float multiplierStart = (THIS->_multiplier * (1.0-THIS->_ratio)) + THIS->_ratio;
             float multiplierStep = -(1.0 / decayFrames) * (1.0-THIS->_ratio);
@@ -330,7 +330,7 @@ static OSStatus filterCallback(id                        filter,
             
         case kStateOpening: {
             // Apply a ramp to the first part of the buffer
-            UInt32 attackFrames = AEConvertSecondsToFrames(audioController, THIS->_attack);
+            UInt32 attackFrames = (UInt32)AEConvertSecondsToFrames(audioController, THIS->_attack);
             int rampDuration = min((1.0-THIS->_multiplier) * attackFrames, frames);
             float multiplierStart = (THIS->_multiplier * (1.0-THIS->_ratio)) + THIS->_ratio;
             float multiplierStep = (1.0 / attackFrames) * (1.0-THIS->_ratio);
